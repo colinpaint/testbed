@@ -13,10 +13,10 @@
 
 //{{{
 #define CHECK_VASTATUS(va_status,func, ret) \
-if (va_status != VA_STATUS_SUCCESS) {       \
+if (va_status != VA_STATUS_SUCCESS) { \
   fprintf(stderr,"%s failed with error code %d (%s),exit\n",func, va_status, vaErrorStr(va_status)); \
-  ret_val = ret;  \
-  goto error;     \
+  ret_val = ret; \
+  goto error; \
   }
 //}}}
 static int show_all_opt = 0;
@@ -38,23 +38,22 @@ static void usage_exit (const char* program) {
 //{{{
 static void parse_args (const char* name, int argc, char **argv) {
 
-  int c;
-  int option_index = 0;
-
   static struct option long_options[] = {
     {"help", no_argument, 0,     'h'},
     {"all",  no_argument, 0,     'a'},
     { NULL,  0,           NULL,   0 }
     };
 
-  va_init_display_args(&argc, argv);
+  va_init_display_args (&argc, argv);
 
+  int c;
+  int option_index = 0;
   while ((c = getopt_long(argc, argv, "a", long_options, &option_index)) != -1) {
-
     switch (c) {
       case 'a':
         show_all_opt = 1;
         break;
+
       case 'h':
       default:
         usage_exit(name);
@@ -68,7 +67,7 @@ static int show_config_attributes (VADisplay va_dpy, VAProfile profile, VAEntryp
 
   struct str_format {
     int format;
-    char *name;
+    char* name;
     };
 
   VAStatus va_status;
@@ -513,6 +512,7 @@ static int show_config_attributes (VADisplay va_dpy, VAProfile profile, VAEntryp
     printf("%-*smixed_quality_level=%d\n", 45, "", config->bits.mixed_quality_level);
     }
   //}}}
+
   printf("\n");
   return 0;
   }
@@ -589,7 +589,7 @@ int main (int argc, const char* argv[]) {
           }
         }
       }
-    } 
+    }
   else {
     printf("%s: Supported profile and entrypoints\n", name);
     for (i = 0; i < num_profiles; i++) {

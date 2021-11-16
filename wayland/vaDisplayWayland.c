@@ -52,12 +52,8 @@ struct display {
 static struct display *g_display;
 
 //{{{
-static void registry_handle_global (
-    void               *data,
-    struct wl_registry *registry,
-    uint32_t            id,
-    const char         *interface,
-    uint32_t            version) {
+static void registry_handle_global (void* data, struct wl_registry *registry,
+                                    uint32_t id, const char* interface, uint32_t version) {
 
   struct display * const d = data;
 
@@ -83,20 +79,23 @@ static VADisplay va_open_display_wayland () {
     d = g_display;
     d->ref_count++;
     }
+
   else {
     d = calloc (1, sizeof(*d));
     if (!d)
-        return NULL;
+      return NULL;
     d->event_fd = -1;
 
     d->display = wl_display_connect (NULL);
     if (!d->display) {
-        free(d);
-        return NULL;
-    }
+      free(d);
+      return NULL;
+      }
+
     wl_display_set_user_data (d->display, d);
     d->registry = wl_display_get_registry (d->display);
     wl_registry_add_listener (d->registry, &registry_listener, d);
+
     d->event_fd = wl_display_get_fd (d->display);
     wl_display_dispatch (d->display);
 
@@ -149,42 +148,41 @@ static void va_close_display_wayland (VADisplay va_dpy) {
   g_display = NULL;
   }
 //}}}
+
 //{{{
 static int ensure_window (VADisplay va_dpy, unsigned int width, unsigned int height) {
 
-  struct display * const d = g_display;
+  struct display* const d = g_display;
 
   if (!d->surface) {
-    d->surface = wl_compositor_create_surface(d->compositor);
+    d->surface = wl_compositor_create_surface (d->compositor);
     if (!d->surface)
       return 0;
     }
 
   if (!d->shell_surface) {
-    d->shell_surface = wl_shell_get_shell_surface(d->shell, d->surface);
+    d->shell_surface = wl_shell_get_shell_surface (d->shell, d->surface);
     if (!d->shell_surface)
       return 0;
-    wl_shell_surface_set_toplevel(d->shell_surface);
+    wl_shell_surface_set_toplevel (d->shell_surface);
     }
 
   return 1;
   }
 //}}}
 //{{{
-static VAStatus va_put_surface_wayland (VADisplay  va_dpy, VASurfaceID surface,
-                                        const VARectangle *src_rect, const VARectangle *dst_rect) {
-
-  struct display * const d = g_display;
-  VAStatus va_status;
-  struct wl_buffer *buffer;
+static VAStatus va_put_surface_wayland (VADisplay va_dpy, VASurfaceID surface,
+                                        const VARectangle* src_rect, const VARectangle* dst_rect) {
 
   if (!ensure_window (va_dpy, dst_rect->width, dst_rect->height))
     return VA_STATUS_ERROR_ALLOCATION_FAILED;
 
-  va_status = vaGetSurfaceBufferWl (va_dpy, surface, VA_FRAME_PICTURE, &buffer);
+  struct wl_buffer* buffer;
+  VAStatus va_status = vaGetSurfaceBufferWl (va_dpy, surface, VA_FRAME_PICTURE, &buffer);
   if (va_status != VA_STATUS_SUCCESS)
     return va_status;
 
+  struct display* const d = g_display;
   wl_surface_attach (d->surface, buffer, 0, 0);
   wl_surface_damage (d->surface, dst_rect->x, dst_rect->y, dst_rect->width, dst_rect->height);
 
