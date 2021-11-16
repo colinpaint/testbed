@@ -35,7 +35,7 @@
 
 #include <va/va.h>
 
-#include "vaDisplay.h"
+#include "va_display.h"
 
 extern const VADisplayHooks va_display_hooks_android;
 extern const VADisplayHooks va_display_hooks_wayland;
