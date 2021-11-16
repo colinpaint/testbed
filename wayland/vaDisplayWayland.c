@@ -75,7 +75,7 @@ static const struct wl_registry_listener registry_listener = {
 //}}}
 
 //{{{
-static VADisplay va_open_display_wayland (void) {
+static VADisplay va_open_display_wayland () {
 
   struct display *d;
 

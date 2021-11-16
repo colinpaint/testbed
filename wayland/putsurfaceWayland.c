@@ -64,19 +64,13 @@ struct drawable;
 //}}}
 
 //{{{
-static VAStatus va_put_surface(
-    VADisplay           dpy,
-    struct drawable    *wl_drawable,
-    VASurfaceID         va_surface,
-    const VARectangle  *src_rect,
-    const VARectangle  *dst_rect,
-    const VARectangle  *cliprects,
-    unsigned int        num_cliprects,
-    unsigned int        flags
-);
+static VAStatus va_put_surface (VADisplay dpy, struct drawable* wl_drawable, VASurfaceID va_surface,
+                                const VARectangle* src_rect, const VARectangle* dst_rect,
+                                const VARectangle* cliprects, unsigned int num_cliprects,
+                                unsigned int flags);
 //}}}
 /* Glue code for the current PutSurface test design */
-#define CAST_DRAWABLE(a)  (struct drawable *)(a)
+#define CAST_DRAWABLE(a)  (struct drawable*)(a)
 //{{{
 static inline VADisplay vaGetDisplay (VANativeDisplay native_dpy)
 {
@@ -185,7 +179,7 @@ fourcc_map va_fourcc_map[] = {
 };
 //}}}
 //{{{
-unsigned int map_str_to_vafourcc (char * str)
+unsigned int map_str_to_vafourcc (char* str)
 {
     int i;
     for (i = 0; i < sizeof(va_fourcc_map) / sizeof(fourcc_map); i++) {
@@ -215,7 +209,7 @@ char* map_vafourcc_to_str (unsigned int format)
 //}}}
 
 //{{{
-static int va_value_equals (const VAGenericValue *v1, const VAGenericValue *v2)
+static int va_value_equals (const VAGenericValue* v1, const VAGenericValue* v2)
 {
     if (v1->type != v2->type)
         return 0;
@@ -234,7 +228,7 @@ static int va_value_equals (const VAGenericValue *v1, const VAGenericValue *v2)
 }
 //}}}
 //{{{
-static int ensure_image_formats(void)
+static int ensure_image_formats()
 {
     VAStatus va_status;
     VAImageFormat *image_formats;
@@ -276,7 +270,7 @@ static const VAImageFormat * lookup_image_format( uint32_t fourcc)
 }
 //}}}
 //{{{
-static int ensure_surface_attribs(void)
+static int ensure_surface_attribs()
 {
     VAStatus va_status;
     VASurfaceAttrib *surface_attribs;
@@ -320,7 +314,7 @@ static int ensure_surface_attribs(void)
 }
 //}}}
 //{{{
-static const VASurfaceAttrib * lookup_surface_attrib (VASurfaceAttribType type, const VAGenericValue *value)
+static const VASurfaceAttrib * lookup_surface_attrib (VASurfaceAttribType type, const VAGenericValue* value)
 {
     int i;
 
@@ -401,7 +395,7 @@ cleanup:
   }
 //}}}
 //{{{
-static VASurfaceID get_next_free_surface (int *index)
+static VASurfaceID get_next_free_surface (int* index)
 {
     VASurfaceStatus surface_status;
     int i;
@@ -459,7 +453,7 @@ static int upload_source_YUV_once_for_all()
 /*
  * Helper function for profiling purposes
  */
-static unsigned long get_tick_count(void)
+static unsigned long get_tick_count()
 {
     struct timeval tv;
     if (gettimeofday(&tv, NULL))
@@ -468,7 +462,7 @@ static unsigned long get_tick_count(void)
 }
 //}}}
 //{{{
-static void update_clipbox (VARectangle *cliprects, int width, int height)
+static void update_clipbox (VARectangle*c liprects, int width, int height)
 {
     if (test_clip == 0)
         return;
@@ -490,7 +484,7 @@ static void update_clipbox (VARectangle *cliprects, int width, int height)
 }
 //}}}
 //{{{
-static void* putsurface_thread (void *data)
+static void* putsurface_thread (void* data)
 {
     int width = win_width, height = win_height;
     void *drawable = data;
@@ -619,7 +613,7 @@ struct drawable {
 //}}}
 
 //{{{
-static void frame_redraw_callback (void *data, struct wl_callback *callback, uint32_t time) {
+static void frame_redraw_callback (void* data, struct wl_callback* callback, uint32_t time) {
 
   struct drawable * const drawable = data;
   drawable->redraw_pending = 0;
@@ -681,7 +675,7 @@ static VAStatus va_put_surface (
 //}}}
 
 //{{{
-static void registry_handle_global(
+static void registry_handle_global (
     void               *data,
     struct wl_registry *registry,
     uint32_t            id,
@@ -704,7 +698,7 @@ static const struct wl_registry_listener registry_listener = {
 //}}}
 
 //{{{
-static void* open_display(void) {
+static void* open_display() {
 
   struct display *d;
 
@@ -727,7 +721,7 @@ static void* open_display(void) {
   }
 //}}}
 //{{{
-static void close_display (void *win_display) {
+static void close_display (void* win_display) {
 
   struct display * const d = wl_display_get_user_data(win_display);
   if (d->shell) {
@@ -750,7 +744,7 @@ static void close_display (void *win_display) {
 //}}}
 
 //{{{
-static int create_window (void *win_display, int x, int y, int width, int height) {
+static int create_window (void* win_display, int x, int y, int width, int height) {
 
   struct wl_display * const display = win_display;
   struct display * const d = wl_display_get_user_data(display);
@@ -791,7 +785,7 @@ static int create_window (void *win_display, int x, int y, int width, int height
   }
 //}}}
 //{{{
-static int check_window_event (void *win_display, void *drawable, int  *width, int  *height, int  *quit ) {
+static int check_window_event (void* win_display, void* drawable, int* width, int* height, int* quit) {
 
   struct wl_display * const display = win_display;
   struct display * const d = wl_display_get_user_data(display);

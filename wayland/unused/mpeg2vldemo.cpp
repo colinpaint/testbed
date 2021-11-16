@@ -1,3 +1,4 @@
+//{{{
 /*
  * Copyright (c) 2007-2008 Intel Corporation. All Rights Reserved.
  *
@@ -33,6 +34,8 @@
  * ./mpeg2vldemo <any parameter >: decode+display
  *
  */
+//}}}
+//{{{  includes
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -44,13 +47,17 @@
 #include <assert.h>
 #include <va/va.h>
 #include "va_display.h"
+//}}}
 
+//{{{
 #define CHECK_VASTATUS(va_status,func)                                  \
 if (va_status != VA_STATUS_SUCCESS) {                                   \
     fprintf(stderr,"%s:%s (%d) failed,exit\n", __func__, func, __LINE__); \
     exit(1);                                                            \
 }
+//}}}
 
+//{{{
 /* Data dump of a 16x16 MPEG2 video clip,it has one I frame
  */
 static unsigned char mpeg2_clip[] = {
@@ -68,7 +75,8 @@ static unsigned char mpeg2_clip[] = {
     0x60, 0x12, 0x12, 0x8a, 0x2c, 0x34, 0x11, 0xff, 0xf6, 0xe2, 0x40, 0xc0, 0x30, 0x1b, 0x7a, 0x01,
     0xa9, 0x0d, 0x00, 0xac, 0x64
 };
-
+//}}}
+//{{{
 /* hardcoded here without a bitstream parser helper
  * please see picture mpeg2-I.jpg for bitstream details
  */
@@ -95,7 +103,8 @@ static VAPictureParameterBufferMPEG2 pic_param = {
         },
     }
 };
-
+//}}}
+//{{{
 /* see MPEG2 spec65 for the defines of matrix */
 static VAIQMatrixBufferMPEG2 iq_matrix = {
     load_intra_quantiser_matrix: 1,
@@ -120,8 +129,10 @@ chroma_intra_quantiser_matrix:
 chroma_non_intra_quantiser_matrix:
     {0}
 };
+//}}}
 
 #if 1
+//{{{
 static VASliceParameterBufferMPEG2 slice_param = {
     slice_data_size: 150,
     slice_data_offset: 0,
@@ -132,14 +143,15 @@ static VASliceParameterBufferMPEG2 slice_param = {
     quantiser_scale_code: 2,
     intra_slice_flag: 0
 };
+//}}}
 #endif
 
 #define CLIP_WIDTH  16
 #define CLIP_HEIGHT 16
-
 #define WIN_WIDTH  (CLIP_WIDTH<<1)
 #define WIN_HEIGHT (CLIP_HEIGHT<<1)
 
+//{{{
 int main(int argc, char **argv)
 {
     VAEntrypoint entrypoints[5];
@@ -284,3 +296,4 @@ int main(int argc, char **argv)
     va_close_display(va_dpy);
     return 0;
 }
+//}}}

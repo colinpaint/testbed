@@ -1,33 +1,4 @@
-/*
- * * Copyright (C) 2018 Intel Corporation. All Rights Reserved.
- * *
- ** Permission is hereby granted, free of charge, to any person obtaining a
- * * copy of this software and associated documentation files (the
- * * "Software"), to deal in the Software without restriction, including
- * * without limitation the rights to use, copy, modify, merge, publish,
- * * distribute, sub license, and/or sell copies of the Software, and to
- * * permit persons to whom the Software is furnished to do so, subject to
- * * the following conditions:
- * *
- * * The above copyright notice and this permission notice (including the
- * * next paragraph) shall be included in all copies or substantial portions
- * * of the Software.
- * *
- * * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- * * IN NO EVENT SHALL PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR
- * * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * */
-
-
-/**
- * @file VDecAccelVA.cpp
- * @brief LibVA decode accelerator implementation.
- */
-
+//{{{  includes
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -41,11 +12,13 @@
 #include "VDecAccelVA.h"
 #include <va/va.h>
 #include <va/va_drm.h>
+//}}}
 
-#define VASUCCEEDED(err)    (err == VA_STATUS_SUCCESS)
-#define VAFAILED(err)       (err != VA_STATUS_SUCCESS)
+#define VASUCCEEDED(err) (err == VA_STATUS_SUCCESS)
+#define VAFAILED(err)    (err != VA_STATUS_SUCCESS)
 
-mvaccel::VDecAccelVAImpl::VDecAccelVAImpl(void* device)
+//{{{
+mvaccel::VDecAccelVAImpl::VDecAccelVAImpl (void* device)
     : m_vaDisplay(0)
     , m_vaProfile(VAProfileNone)
     , m_vaEntrypoint(VAEntrypointVLD)
@@ -62,7 +35,8 @@ mvaccel::VDecAccelVAImpl::VDecAccelVAImpl(void* device)
         return;
     }
 }
-
+//}}}
+//{{{
 mvaccel::VDecAccelVAImpl::VDecAccelVAImpl()
     : m_vaDisplay(0)
     , m_vaProfile(VAProfileNone)
@@ -72,15 +46,17 @@ mvaccel::VDecAccelVAImpl::VDecAccelVAImpl()
     , m_surfaceType(VA_RT_FORMAT_YUV420)
 {
 }
-
+//}}}
+//{{{
 mvaccel::VDecAccelVAImpl::~VDecAccelVAImpl()
 {
     if (drm_fd != -1) {
         close(drm_fd);
     }
 }
+//}}}
 
-
+//{{{
 int mvaccel::VDecAccelVAImpl::Open()
 {
     VAStatus vaStatus = VA_STATUS_ERROR_UNKNOWN;
@@ -200,7 +176,8 @@ int mvaccel::VDecAccelVAImpl::Open()
 
     return vaStatus;
 }
-
+//}}}
+//{{{
 void mvaccel::VDecAccelVAImpl::Close()
 {
     std::vector<VASurfaceID>::iterator it;
@@ -217,19 +194,23 @@ void mvaccel::VDecAccelVAImpl::Close()
     m_vaConfigID = 0;
     m_vaContextID = 0;
 }
+//}}}
 
-uint32_t mvaccel::VDecAccelVAImpl::GetSurfaceID(uint32_t index)
+//{{{
+uint32_t mvaccel::VDecAccelVAImpl::GetSurfaceID (uint32_t index)
 {
     assert(index < m_vaIDs.size());
     return m_vaIDs[index];
 }
+//}}}
 
+//{{{
 /**
  * @brief   Check if video decode acceleration description is supported.
  * @param   cc Video decode acceleration description.
  * @return  true if supported, false if not.
  */
-bool mvaccel::VDecAccelVAImpl::is_config_compatible(DecodeDesc& desc)
+bool mvaccel::VDecAccelVAImpl::is_config_compatible (DecodeDesc& desc)
 {
     if (!is_slice_mode_supported(desc))
         return false;
@@ -242,13 +223,14 @@ bool mvaccel::VDecAccelVAImpl::is_config_compatible(DecodeDesc& desc)
 
     return true;
 }
-
+//}}}
+//{{{
 /**
  * @brief   Check if long or short format is supported not not.
  * @param   cc Video decode acceleration description.
  * @return  true if supported, false if not.
  */
-bool mvaccel::VDecAccelVAImpl::is_slice_mode_supported(DecodeDesc& desc)
+bool mvaccel::VDecAccelVAImpl::is_slice_mode_supported (DecodeDesc& desc)
 {
     VAConfigAttrib vaAttrib;
     memset(&vaAttrib, 0, sizeof(vaAttrib));
@@ -267,13 +249,14 @@ bool mvaccel::VDecAccelVAImpl::is_slice_mode_supported(DecodeDesc& desc)
     else
         return false;
 }
-
+//}}}
+//{{{
 /**
  * @brief   Check if encryption is supported or not.
  * @param   cc Video decode acceleration description.
  * @return  true if supported, false if not.
  */
-bool mvaccel::VDecAccelVAImpl::is_encryption_supported(DecodeDesc& desc)
+bool mvaccel::VDecAccelVAImpl::is_encryption_supported (DecodeDesc& desc)
 {
     VAConfigAttrib vaAttrib;
     memset(&vaAttrib, 0, sizeof(vaAttrib));
@@ -292,13 +275,14 @@ bool mvaccel::VDecAccelVAImpl::is_encryption_supported(DecodeDesc& desc)
     else
         return false;
 }
-
+//}}}
+//{{{
 /**
  * @brief   Check if SFC attribute is supported or not.
  * @param   cc Video decode acceleration description.
  * @return  true if supported, false if not.
  */
-bool mvaccel::VDecAccelVAImpl::is_sfc_config_supported(DecodeDesc& desc)
+bool mvaccel::VDecAccelVAImpl::is_sfc_config_supported (DecodeDesc& desc)
 {
     // SFC attribute check
     VAConfigAttrib vaAttrib;
@@ -318,13 +302,14 @@ bool mvaccel::VDecAccelVAImpl::is_sfc_config_supported(DecodeDesc& desc)
 
     return true;
 }
-
+//}}}
+//{{{
 /**
  * @brief   Check if render target format is supported or not.
  * @param   cc Video decode acceleration description.
  * @return  true if supported, false if not.
  */
-bool mvaccel::VDecAccelVAImpl::is_rt_foramt_supported(DecodeDesc& desc)
+bool mvaccel::VDecAccelVAImpl::is_rt_foramt_supported (DecodeDesc& desc)
 {
     uint32_t count = VASurfaceAttribCount + vaMaxNumImageFormats(m_vaDisplay);
     std::vector<VASurfaceAttrib> attribs(count);
@@ -342,13 +327,15 @@ bool mvaccel::VDecAccelVAImpl::is_rt_foramt_supported(DecodeDesc& desc)
 
     return true;
 }
+//}}}
 
+//{{{
 /**
  * @brief   Prepare config attribs VAContext creation.
  * @param   desc Video decode acceleration description.
  * @param   vaAttribs Array of VASurfaceAttrib which will contains the attrib.
  */
-void mvaccel::VDecAccelVAImpl::prepare_config_attribs(
+void mvaccel::VDecAccelVAImpl::prepare_config_attribs (
     DecodeDesc& desc,
     VAConfigAttribArray& attribs)
 {
@@ -370,13 +357,14 @@ void mvaccel::VDecAccelVAImpl::prepare_config_attribs(
     attrib.value = VA_DEC_PROCESSING;
     attribs.push_back(attrib);
 }
-
+//}}}
+//{{{
 /**
  * @brief   Prepare the VA surface attribs for creation.
  * @param   desc Video decode acceleration description.
  * @param   vaSurfAttribs Array of VASurfaceAttrib which will contains attrib.
  */
-void mvaccel::VDecAccelVAImpl::prepare_surface_attribs(
+void mvaccel::VDecAccelVAImpl::prepare_surface_attribs (
     DecodeDesc& desc,
     VASurfaceAttribArray& attribs,
     bool bDecodeDownsamplingHinted)
@@ -396,13 +384,14 @@ void mvaccel::VDecAccelVAImpl::prepare_surface_attribs(
 
     attribs.push_back(attrib);
 }
-
+//}}}
+//{{{
 /**
  * @brief   Delete allocated surface
  * @param   surfaceID Index of allocated surface. After delete, the surface
  *          values will be set to invalid value.
  */
-void mvaccel::VDecAccelVAImpl::delete_surface(VASurfaceID& vaID)
+void mvaccel::VDecAccelVAImpl::delete_surface (VASurfaceID& vaID)
 {
     // Make sure no others is using this surface
     if (m_images.count(vaID))
@@ -411,8 +400,10 @@ void mvaccel::VDecAccelVAImpl::delete_surface(VASurfaceID& vaID)
     vaDestroySurfaces(m_vaDisplay, &vaID, 1);
     vaID = VA_INVALID_SURFACE;
 }
+//}}}
 
-uint8_t* mvaccel::VDecAccelVAImpl::lock_surface(VASurfaceID id, bool write)
+//{{{
+uint8_t* mvaccel::VDecAccelVAImpl::lock_surface (VASurfaceID id, bool write)
 {
     // Check if decode is completed
     VAStatus status = vaSyncSurface(m_vaDisplay, id);
@@ -455,8 +446,9 @@ uint8_t* mvaccel::VDecAccelVAImpl::lock_surface(VASurfaceID id, bool write)
     }
     return buffer;
 }
-
-void mvaccel::VDecAccelVAImpl::unlock_surface(VASurfaceID id)
+//}}}
+//{{{
+void mvaccel::VDecAccelVAImpl::unlock_surface (VASurfaceID id)
 {
     VAStatus status = vaUnmapBuffer(m_vaDisplay, m_images[id].buf);
     assert(VASUCCEEDED(status));
@@ -464,7 +456,9 @@ void mvaccel::VDecAccelVAImpl::unlock_surface(VASurfaceID id)
     status = vaDestroyImage(m_vaDisplay, m_images[id].image_id);
     assert(VASUCCEEDED(status));
 }
+//}}}
 
+//{{{
 //prepare basic format/resolution parameter
 void mvaccel::VDecAccelVAImpl::create_decode_desc()
 {
@@ -476,7 +470,8 @@ void mvaccel::VDecAccelVAImpl::create_decode_desc()
     m_DecodeDesc.sfc_height   = 144;
     m_DecodeDesc.surfaces_num = 2;
 }
-
+//}}}
+//{{{
 bool mvaccel::VDecAccelVAImpl::DecodePicture()
 {
     // Create addition surfaces for scaled video output
@@ -593,9 +588,11 @@ bool mvaccel::VDecAccelVAImpl::DecodePicture()
 
     return (VASUCCEEDED(vaStatus) ? 0 : 1);
 }
+//}}}
 
+//{{{
 // check vaQueryVideoProcPipelineCaps
-int mvaccel::VDecAccelVAImpl::check_process_pipeline_caps(DecodeDesc& desc)
+int mvaccel::VDecAccelVAImpl::check_process_pipeline_caps (DecodeDesc& desc)
 {
     VAProcPipelineCaps caps;
 
@@ -630,7 +627,8 @@ int mvaccel::VDecAccelVAImpl::check_process_pipeline_caps(DecodeDesc& desc)
 
     return 0;
 }
-
+//}}}
+//{{{
 int mvaccel::VDecAccelVAImpl::create_resources()
 {
     if (m_sfcIDs.empty())
@@ -682,3 +680,4 @@ int mvaccel::VDecAccelVAImpl::create_resources()
 
     return 0;
 }
+//}}}

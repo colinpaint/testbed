@@ -10,7 +10,7 @@ static Display *x11_display;
 static Window x11_window;
 
 //{{{
-static VADisplay va_open_display_x11(void) {
+static VADisplay va_open_display_x11() {
 
   x11_display = XOpenDisplay(NULL);
   if (!x11_display) {

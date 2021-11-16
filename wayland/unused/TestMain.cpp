@@ -1,3 +1,4 @@
+//{{{
 /*
  * * Copyright (C) 2018 Intel Corporation. All Rights Reserved.
  * *
@@ -21,25 +22,25 @@
  * * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
-
+//}}}
 #include "VDecAccelVA.h"
 using namespace mvaccel;
 
+int main(int argc, char** argv) {
 
-int main(int argc, char** argv)
-{
-    VDecAccelVAImpl VideoProc;
+  VDecAccelVAImpl VideoProc;
 
-    //initialize, check caps and prepare buffers
-    if (VideoProc.Open() != 0) {
-        printf("Failed to open decode accelerator");
-        return 1;
+  //initialize, check caps and prepare buffers
+  if (VideoProc.Open() != 0) {
+    printf ("Failed to open decode accelerator");
+    return 1;
     }
 
-    //actual decode process
-    if (VideoProc.DecodePicture() != 0) {
-        printf("Failed to decode picture");
-        return 1;
+  //actual decode process
+  if (VideoProc.DecodePicture() != 0) {
+    printf ("Failed to decode picture");
+    return 1;
     }
-    return 0;
-}
+
+  return 0;
+  }

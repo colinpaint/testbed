@@ -17,7 +17,7 @@ static int drm_fd = -1;
 extern const char* g_drm_device_name;
 
 //{{{
-static VADisplay va_open_display_drm(void) {
+static VADisplay va_open_display_drm() {
 
   VADisplay va_dpy;
   int i;

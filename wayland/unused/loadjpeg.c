@@ -1,3 +1,4 @@
+//{{{
 /*
  * Small jpeg decoder library - testing application
  *
@@ -31,21 +32,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
+//}}}
+//{{{
 #include "tinyjpeg.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "va_display.h"
+//}}}
 
 static void exitmessage(const char *message) __attribute__((noreturn));
+//{{{
 static void exitmessage(const char *message)
 {
     printf("%s\n", message);
     exit(0);
 }
+//}}}
 
+//{{{
 static int filesize(FILE *fp)
 {
     long pos;
@@ -54,11 +60,12 @@ static int filesize(FILE *fp)
     fseek(fp, 0, SEEK_SET);
     return pos;
 }
-
+//}}}
+//{{{
 /**
  * Load one jpeg image, and decompress it, and save the result.
  */
-int convert_one_image(const char *infilename)
+int convert_one_image (const char *infilename)
 {
     FILE *fp;
     unsigned int length_of_file;
@@ -102,17 +109,20 @@ int convert_one_image(const char *infilename)
     free(buf);
     return 0;
 }
-
+//}}}
+//{{{
 static void usage(void)
 {
     fprintf(stderr, "Usage: loadjpeg <input_filename.jpeg> \n");
     exit(1);
 }
+//}}}
 
 /**
  * main
  *
  */
+//{{{
 int main(int argc, char *argv[])
 {
     char *input_filename;
@@ -136,7 +146,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-
-
-
+//}}}

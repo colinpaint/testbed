@@ -1,3 +1,4 @@
+//{{{
 /*
  * Copyright (c) 2018 Intel Corporation. All Rights Reserved.
  *
@@ -31,7 +32,8 @@
  * ./avcstreamoutdemo <any parameter >: do decode and dump mv info
  *
  */
-
+//}}}
+//{{{
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -44,14 +46,17 @@
 #include <va/va.h>
 #include "va_display.h"
 #include "avcstreamoutdemo.h"
+//}}}
 
-
+//{{{
 #define CHECK_VASTATUS(va_status,func)                                  \
 if (va_status != VA_STATUS_SUCCESS) {                                   \
     fprintf(stderr,"%s:%s (%d) failed,exit\n", __func__, func, __LINE__); \
     exit(1);                                                            \
 }
+//}}}
 
+//{{{
 /* Data dump of a 176x144 AVC video clip,it has one I frame and one P frame
  */
 static unsigned int avc_clip[] = {
@@ -328,7 +333,8 @@ static unsigned int avc_clip[] = {
     0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000000
 };
-
+//}}}
+//{{{
 static unsigned int avc_clip1[] = {
     0xbbd2e141, 0xe764a8bc, 0x0c0880d5, 0x38bb0a6e,
     0x0a6b07f7, 0x77ac6065, 0x040c94ff, 0xce15704a,
@@ -411,15 +417,20 @@ static unsigned int avc_clip1[] = {
     0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000000,
 };
+//}}}
 
+//{{{
 /* hardcoded here without a bitstream parser helper
  */
 static VAPictureParameterBufferH264 pic_param[2] = {
     {
+//{{{
 CurrPic:
         {
             0, 0, 8, 0, 0
         },
+//}}}
+//{{{
 ReferenceFrames:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -439,6 +450,7 @@ ReferenceFrames:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
         picture_width_in_mbs_minus1: 10,
         picture_height_in_mbs_minus1: 8,
         bit_depth_luma_minus8: 0,
@@ -483,10 +495,13 @@ ReferenceFrames:
         frame_num: 0
     },
     {
+//{{{
 CurrPic:
         {
             1, 1, 8, 1, 1
         },
+//}}}
+//{{{
 ReferenceFrames:
         {
             {0, 0, 8, 0, 0},
@@ -506,6 +521,7 @@ ReferenceFrames:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
         picture_width_in_mbs_minus1: 10,
         picture_height_in_mbs_minus1: 8,
         bit_depth_luma_minus8: 0,
@@ -550,36 +566,41 @@ ReferenceFrames:
         frame_num: 1
     }
 };
-
+//}}}
+//{{{
 static VAIQMatrixBufferH264 iq_matrix[2] = {
     {
-ScalingList4x4:
-        {
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10}
-        },
-ScalingList8x8:
-        {{0}}
+    //{{{
+    ScalingList4x4:
+            {
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10}
+            },
+    //}}}
+    ScalingList8x8: {{0}}
     },
-    {
-ScalingList4x4:
-        {
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
-            {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10}
-        },
-ScalingList8x8:
-        {{0}}
-    }
-};
 
+    {
+    //{{{
+    ScalingList4x4:
+            {
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10},
+                {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10}
+            },
+    //}}}
+    ScalingList8x8: {{0}}
+    }
+  };
+//}}}
+//{{{
 static VASliceParameterBufferH264 slice_param_surface0[4] = {
     {
         slice_data_size: 1101,
@@ -596,6 +617,7 @@ static VASliceParameterBufferH264 slice_param_surface0[4] = {
         disable_deblocking_filter_idc: 0,
         slice_alpha_c0_offset_div2: 0,
         slice_beta_offset_div2: 0,
+//{{{
 RefPicList0:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -631,6 +653,8 @@ RefPicList0:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
+//{{{
 RefPicList1:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -666,6 +690,7 @@ RefPicList1:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
         luma_log2_weight_denom: 0,
         chroma_log2_weight_denom: 0,
         luma_weight_l0_flag: 0,
@@ -705,6 +730,7 @@ slice_qp_delta:
             disable_deblocking_filter_idc: 0,
             slice_alpha_c0_offset_div2: 0,
             slice_beta_offset_div2: 0,
+    //{{{
     RefPicList0:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -740,6 +766,8 @@ slice_qp_delta:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+    //}}}
+//{{{
 RefPicList1:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -775,6 +803,7 @@ RefPicList1:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
         luma_log2_weight_denom: 0,
         chroma_log2_weight_denom: 0,
         luma_weight_l0_flag: 0,
@@ -814,6 +843,7 @@ slice_qp_delta:
             disable_deblocking_filter_idc: 0,
             slice_alpha_c0_offset_div2: 0,
             slice_beta_offset_div2: 0,
+    //{{{
     RefPicList0:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -849,6 +879,8 @@ slice_qp_delta:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+    //}}}
+//{{{
 RefPicList1:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -884,6 +916,7 @@ RefPicList1:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
         luma_log2_weight_denom: 0,
         chroma_log2_weight_denom: 0,
         luma_weight_l0_flag: 0,
@@ -923,6 +956,7 @@ slice_qp_delta:
             disable_deblocking_filter_idc: 0,
             slice_alpha_c0_offset_div2: 0,
             slice_beta_offset_div2: 0,
+    //{{{
     RefPicList0:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -958,6 +992,8 @@ slice_qp_delta:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+    //}}}
+//{{{
 RefPicList1:
         {
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
@@ -993,6 +1029,7 @@ RefPicList1:
             {VA_INVALID_SURFACE, 0, 1, 0, 0},
             {VA_INVALID_SURFACE, 0, 1, 0, 0}
         },
+//}}}
         luma_log2_weight_denom: 0,
         chroma_log2_weight_denom: 0,
         luma_weight_l0_flag: 0,
@@ -1017,228 +1054,220 @@ chroma_offset_l1:
         {{0, 0}}
     }
 };
-
+//}}}
+//{{{
 static VASliceParameterBufferH264 slice_param_surface1[2] = {
-    {
-        slice_data_size: 1091,
-        slice_data_offset: 0,
-        slice_data_flag: 0,
-        slice_data_bit_offset: 32,
-        first_mb_in_slice: 0,
-        slice_type: 0,
-        direct_spatial_mv_pred_flag: 0,
-        num_ref_idx_l0_active_minus1: 0,
-        num_ref_idx_l1_active_minus1: 0,
-        cabac_init_idc: 0,
-slice_qp_delta:
-        -1,
-            disable_deblocking_filter_idc: 0,
-            slice_alpha_c0_offset_div2: 0,
-            slice_beta_offset_div2: 0,
-    RefPicList0:
-        {
-            {0, 0, 8, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0}
-        },
-RefPicList1:
-        {
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0}
-        },
-        luma_log2_weight_denom: 0,
-        chroma_log2_weight_denom: 0,
-        luma_weight_l0_flag: 0,
-luma_weight_l0:
-        {0},
-luma_offset_l0:
-        {0},
-        chroma_weight_l0_flag: 0,
-chroma_weight_l0:
-        {{0, 0}},
-chroma_offset_l0:
-        {{0, 0}},
-        luma_weight_l1_flag: 0,
-luma_weight_l1:
-        {0},
-luma_offset_l1:
-        {0},
-        chroma_weight_l1_flag: 0,
-chroma_weight_l1:
-        {{0, 0}},
-chroma_offset_l1:
-        {{0, 0}}
-    },
-    {
-        slice_data_size: 138,
-        slice_data_offset: 1091,
-        slice_data_flag: 0,
-        slice_data_bit_offset: 44,
-        first_mb_in_slice: 92,
-        slice_type: 0,
-        direct_spatial_mv_pred_flag: 0,
-        num_ref_idx_l0_active_minus1: 0,
-        num_ref_idx_l1_active_minus1: 0,
-        cabac_init_idc: 0,
-slice_qp_delta:
-        -1,
-            disable_deblocking_filter_idc: 0,
-            slice_alpha_c0_offset_div2: 0,
-            slice_beta_offset_div2: 0,
-    RefPicList0:
-        {
-            {0, 0, 8, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0}
-        },
-RefPicList1:
-        {
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0},
-            {VA_INVALID_SURFACE, 0, 1, 0, 0}
-        },
-        luma_log2_weight_denom: 0,
-        chroma_log2_weight_denom: 0,
-        luma_weight_l0_flag: 0,
-luma_weight_l0:
-        {0},
-luma_offset_l0:
-        {0},
-        chroma_weight_l0_flag: 0,
-chroma_weight_l0:
-        {{0, 0}},
-chroma_offset_l0:
-        {{0, 0}},
-        luma_weight_l1_flag: 0,
-luma_weight_l1:
-        {0},
-luma_offset_l1:
-        {0},
-        chroma_weight_l1_flag: 0,
-chroma_weight_l1:
-        {{0, 0}},
-chroma_offset_l1:
-        {{0, 0}}
-    }
-};
+  {
+  slice_data_size: 1091,
+  slice_data_offset: 0,
+  slice_data_flag: 0,
+  slice_data_bit_offset: 32,
+  first_mb_in_slice: 0,
+  slice_type: 0,
+  direct_spatial_mv_pred_flag: 0,
+  num_ref_idx_l0_active_minus1: 0,
+  num_ref_idx_l1_active_minus1: 0,
+  cabac_init_idc: 0,
+  slice_qp_delta: -1,
+  disable_deblocking_filter_idc: 0,
+  slice_alpha_c0_offset_div2: 0,
+  slice_beta_offset_div2: 0,
+  //{{{
+  RefPicList0:
+      {
+          {0, 0, 8, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0}
+      },
+  //}}}
+  //{{{
+  RefPicList1:
+          {
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0}
+          },
+  //}}}
+  luma_log2_weight_denom: 0,
+  chroma_log2_weight_denom: 0,
+  luma_weight_l0_flag: 0,
+  luma_weight_l0: {0},
+  luma_offset_l0: {0},
+  chroma_weight_l0_flag: 0,
+  chroma_weight_l0: {{0, 0}},
+  chroma_offset_l0: {{0, 0}},
+  luma_weight_l1_flag: 0,
+  luma_weight_l1: {0},
+  luma_offset_l1: {0},
+  chroma_weight_l1_flag: 0,
+  chroma_weight_l1: {{0, 0}},
+  chroma_offset_l1: {{0, 0}}
+  },
 
+  {
+  slice_data_size: 138,
+  slice_data_offset: 1091,
+  slice_data_flag: 0,
+  slice_data_bit_offset: 44,
+  first_mb_in_slice: 92,
+  slice_type: 0,
+  direct_spatial_mv_pred_flag: 0,
+  num_ref_idx_l0_active_minus1: 0,
+  num_ref_idx_l1_active_minus1: 0,
+  cabac_init_idc: 0,
+  slice_qp_delta: -1,
+  disable_deblocking_filter_idc: 0,
+  slice_alpha_c0_offset_div2: 0,
+  slice_beta_offset_div2: 0,
+  //{{{
+  RefPicList0:
+      {
+          {0, 0, 8, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0},
+          {VA_INVALID_SURFACE, 0, 1, 0, 0}
+      },
+  //}}}
+  //{{{
+  RefPicList1:
+          {
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0},
+              {VA_INVALID_SURFACE, 0, 1, 0, 0}
+          },
+  //}}}
+  luma_log2_weight_denom: 0,
+  chroma_log2_weight_denom: 0,
+  luma_weight_l0_flag: 0,
+  luma_weight_l0: {0},
+  luma_offset_l0: {0},
+  chroma_weight_l0_flag: 0,
+  chroma_weight_l0: {{0, 0}},
+  chroma_offset_l0: {{0, 0}},
+  luma_weight_l1_flag: 0,
+  luma_weight_l1: {0},
+  luma_offset_l1: {0},
+  chroma_weight_l1_flag: 0,
+  chroma_weight_l1: {{0, 0}},
+  chroma_offset_l1: {{0, 0}}
+  }
+};
+//}}}
 
 #define CLIP_WIDTH  176
 #define CLIP_HEIGHT 144
@@ -1248,7 +1277,8 @@ chroma_offset_l1:
 #define IF_EQUAL(a, b)         (a == b)
 #define IF_EQUAL_M(a, b, c, d) (a == b && a == c && a == d && b == c && b == d && c == d)
 
-void dumpMvs(VADecStreamOutData *streamout, int mbIndex)
+//{{{
+void dumpMvs (VADecStreamOutData *streamout, int mbIndex)
 {
     if (IF_EQUAL_M(streamout->QW8[0].MvFwd_x, streamout->QW8[1].MvFwd_x, streamout->QW8[2].MvFwd_x, streamout->QW8[2].MvFwd_x)
         && IF_EQUAL_M(streamout->QW8[0].MvFwd_y, streamout->QW8[1].MvFwd_y, streamout->QW8[2].MvFwd_y, streamout->QW8[2].MvFwd_y)) {
@@ -1327,8 +1357,10 @@ void dumpMvs(VADecStreamOutData *streamout, int mbIndex)
         printf("****************************\n\n");
     }
 }
+//}}}
 
-int main(int argc, char **argv)
+//{{{
+int main (int argc, char **argv)
 {
     VAEntrypoint entrypoints[5];
     int num_entrypoints, vld_entrypoint;
@@ -1504,3 +1536,4 @@ int main(int argc, char **argv)
     va_close_display(va_dpy);
     return 0;
 }
+//}}}

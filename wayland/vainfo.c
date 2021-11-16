@@ -22,7 +22,7 @@ if (va_status != VA_STATUS_SUCCESS) {       \
 static int show_all_opt = 0;
 
 //{{{
-static void usage_exit (const char *program) {
+static void usage_exit (const char* program) {
 
   fprintf(stdout, "Show information from VA-API driver\n");
   fprintf(stdout, "Usage: %s --help\n", program);
@@ -36,7 +36,7 @@ static void usage_exit (const char *program) {
   }
 //}}}
 //{{{
-static void parse_args (const char *name, int argc, char **argv) {
+static void parse_args (const char* name, int argc, char **argv) {
 
   int c;
   int option_index = 0;
@@ -519,105 +519,97 @@ static int show_config_attributes (VADisplay va_dpy, VAProfile profile, VAEntryp
 //}}}
 
 //{{{
-int main (int argc, const char* argv[])
-{
-    VADisplay va_dpy;
-    VAStatus va_status;
-    int major_version, minor_version;
-    const char *driver;
-    const char *name = strrchr(argv[0], '/');
-    VAProfile profile, *profile_list = NULL;
-    int num_profiles, max_num_profiles, i;
-    VAEntrypoint entrypoint, *entrypoints = NULL;
-    int num_entrypoint = 0;
-    int ret_val = 0;
+int main (int argc, const char* argv[]) {
 
-    if (name)
-        name++;
-    else
-        name = argv[0];
+  VADisplay va_dpy;
+  VAStatus va_status;
+  int major_version, minor_version;
+  const char *driver;
+  const char *name = strrchr(argv[0], '/');
+  VAProfile profile, *profile_list = NULL;
+  int num_profiles, max_num_profiles, i;
+  VAEntrypoint entrypoint, *entrypoints = NULL;
+  int num_entrypoint = 0;
+  int ret_val = 0;
 
-    parse_args(name, argc, (char **)argv);
+  if (name)
+    name++;
+  else
+    name = argv[0];
+  parse_args (name, argc, (char **)argv);
 
-    va_dpy = va_open_display();
-    if (NULL == va_dpy) {
-        fprintf(stderr, "%s: vaGetDisplay() failed\n", name);
-        return 2;
+  va_dpy = va_open_display();
+  if (NULL == va_dpy) {
+    fprintf (stderr, "%s: vaGetDisplay() failed\n", name);
+    return 2;
     }
 
-    va_status = vaInitialize(va_dpy, &major_version, &minor_version);
-    CHECK_VASTATUS(va_status, "vaInitialize", 3);
+  va_status = vaInitialize (va_dpy, &major_version, &minor_version);
+  CHECK_VASTATUS(va_status, "vaInitialize", 3);
 
-    printf("%s: VA-API version: %d.%d (libva %s)\n",
-           name, major_version, minor_version, LIBVA_VERSION_S);
+  printf ("%s: VA-API version: %d.%d (libva %s)\n", name, major_version, minor_version, LIBVA_VERSION_S);
 
-    driver = vaQueryVendorString(va_dpy);
-    printf("%s: Driver version: %s\n", name, driver ? driver : "<unknown>");
+  driver = vaQueryVendorString (va_dpy);
+  printf ("%s: Driver version: %s\n", name, driver ? driver : "<unknown>");
 
-    num_entrypoint = vaMaxNumEntrypoints(va_dpy);
-    entrypoints = malloc(num_entrypoint * sizeof(VAEntrypoint));
-    if (!entrypoints) {
-        printf("Failed to allocate memory for entrypoint list\n");
-        ret_val = -1;
-        goto error;
+  num_entrypoint = vaMaxNumEntrypoints (va_dpy);
+  entrypoints = malloc (num_entrypoint * sizeof(VAEntrypoint));
+  if (!entrypoints) {
+    printf ("Failed to allocate memory for entrypoint list\n");
+    ret_val = -1;
+    goto error;
     }
 
-    max_num_profiles = vaMaxNumProfiles(va_dpy);
-    profile_list = malloc(max_num_profiles * sizeof(VAProfile));
+  max_num_profiles = vaMaxNumProfiles(va_dpy);
+  profile_list = malloc (max_num_profiles * sizeof(VAProfile));
 
-    if (!profile_list) {
-        printf("Failed to allocate memory for profile list\n");
-        ret_val = 5;
-        goto error;
+  if (!profile_list) {
+    printf ("Failed to allocate memory for profile list\n");
+    ret_val = 5;
+    goto error;
     }
 
-    va_status = vaQueryConfigProfiles(va_dpy, profile_list, &num_profiles);
-    CHECK_VASTATUS(va_status, "vaQueryConfigProfiles", 6);
+  va_status = vaQueryConfigProfiles (va_dpy, profile_list, &num_profiles);
+  CHECK_VASTATUS(va_status, "vaQueryConfigProfiles", 6);
 
-    if (show_all_opt) {
-        printf("%s: Supported config attributes per profile/entrypoint pair\n", name);
-        for (i = 0; i < num_profiles; i++) {
-            profile = profile_list[i];
-            va_status = vaQueryConfigEntrypoints(va_dpy, profile, entrypoints,
-                                                 &num_entrypoint);
-            if (va_status == VA_STATUS_ERROR_UNSUPPORTED_PROFILE)
-                continue;
+  if (show_all_opt) {
+    printf("%s: Supported config attributes per profile/entrypoint pair\n", name);
+    for (i = 0; i < num_profiles; i++) {
+      profile = profile_list[i];
+      va_status = vaQueryConfigEntrypoints (va_dpy, profile, entrypoints, &num_entrypoint);
+      if (va_status == VA_STATUS_ERROR_UNSUPPORTED_PROFILE)
+        continue;
 
-            CHECK_VASTATUS(va_status, "vaQueryConfigEntrypoints", 4);
-
-            for (entrypoint = 0; entrypoint < num_entrypoint; entrypoint++) {
-                ret_val = show_config_attributes(va_dpy, profile_list[i], entrypoints[entrypoint]);
-                if (ret_val) {
-                    printf("Failed to get config attributes\n");
-                    goto error;
-                }
-            }
+      CHECK_VASTATUS(va_status, "vaQueryConfigEntrypoints", 4);
+      for (entrypoint = 0; entrypoint < num_entrypoint; entrypoint++) {
+        ret_val = show_config_attributes (va_dpy, profile_list[i], entrypoints[entrypoint]);
+        if (ret_val) {
+          printf("Failed to get config attributes\n");
+          goto error;
+          }
         }
-    } else {
-        printf("%s: Supported profile and entrypoints\n", name);
-        for (i = 0; i < num_profiles; i++) {
-            profile = profile_list[i];
-            va_status = vaQueryConfigEntrypoints(va_dpy, profile, entrypoints,
-                                                 &num_entrypoint);
-            if (va_status == VA_STATUS_ERROR_UNSUPPORTED_PROFILE)
-                continue;
+      }
+    } 
+  else {
+    printf("%s: Supported profile and entrypoints\n", name);
+    for (i = 0; i < num_profiles; i++) {
+      profile = profile_list[i];
+      va_status = vaQueryConfigEntrypoints (va_dpy, profile, entrypoints, &num_entrypoint);
+      if (va_status == VA_STATUS_ERROR_UNSUPPORTED_PROFILE)
+        continue;
 
-            CHECK_VASTATUS(va_status, "vaQueryConfigEntrypoints", 4);
-
-            for (entrypoint = 0; entrypoint < num_entrypoint; entrypoint++) {
-                printf("      %-32s:  %s\n",
-                       vaProfileStr(profile),
-                       vaEntrypointStr(entrypoints[entrypoint]));
-            }
-        }
+      CHECK_VASTATUS(va_status, "vaQueryConfigEntrypoints", 4);
+      for (entrypoint = 0; entrypoint < num_entrypoint; entrypoint++)
+        printf ("      %-32s:  %s\n", vaProfileStr (profile), vaEntrypointStr (entrypoints[entrypoint]));
+      }
     }
 
 error:
-    free(entrypoints);
-    free(profile_list);
-    vaTerminate(va_dpy);
-    va_close_display(va_dpy);
+  free (entrypoints);
+  free (profile_list);
+  vaTerminate (va_dpy);
+  va_close_display (va_dpy);
 
-    return ret_val;
-}
+  return ret_val;
+  }
 //}}}
