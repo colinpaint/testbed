@@ -66,7 +66,7 @@ static VAStatus vaPutSurface (VADisplay dpy, VASurfaceID surface, struct drawabl
   src_rect.height = src_h;
 
   VARectangle dst_rect;
-  dst_rect.x = sc_x;
+  dst_rect.x = src_x;
   dst_rect.y = src_y;
   dst_rect.width  = src_w;
   dst_rect.height = src_h;
@@ -410,7 +410,7 @@ static unsigned long get_tick_count() {
   }
 //}}}
 //{{{
-static void update_clipbox (VARectangle*c liprects, int width, int height) {
+static void update_clipbox (VARectangle* cliprects, int width, int height) {
 
   if (test_clip == 0)
     return;
@@ -870,11 +870,11 @@ int main (int argc, char **argv) {
         if (atoi(optarg) == 1) {
           printf("Display TOP field\n");
           display_field = VA_TOP_FIELD;
-          } 
+          }
         else if (atoi(optarg) == 2) {
           printf("Display BOTTOM field\n");
           display_field = VA_BOTTOM_FIELD;
-          } 
+          }
         else
           printf("The validate input for -f is: 1(top field)/2(bottom field)\n");
         break;
@@ -910,7 +910,7 @@ int main (int argc, char **argv) {
       }
     }
 
-  if (csc_src_fourcc && csc_dst_fourcc) 
+  if (csc_src_fourcc && csc_dst_fourcc)
     test_color_conversion = 1;
 
   win_display = (void*)open_display();

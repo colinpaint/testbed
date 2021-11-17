@@ -7,7 +7,8 @@
 #include <getopt.h>
 
 #include <va/va_str.h>
-#include "va_display.h"
+
+#include "../valib/va_display.h"
 //}}}
 #define LIBVA_VERSION_S "2.0.0"
 
