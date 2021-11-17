@@ -96,14 +96,15 @@ if (BUILD_HELLO)
   project (hello)
     if (MSVC)
     else()
-      file (GLOB SOURCE_FILES hello/main.c)
+      file (GLOB HEADER_FILES hello/xdg-shell-client-protocol.h)
+      file (GLOB SOURCE_FILES hello/main.c hello/xdg-shell-protocol.c)
 
       find_package (PkgConfig REQUIRED)
       pkg_check_modules (WAYLAND REQUIRED IMPORTED_TARGET wayland-protocols)
       pkg_check_modules (WAYLAND_CLIENT REQUIRED IMPORTED_TARGET wayland-client)
       pkg_check_modules (WAYLAND_SCANNER REQUIRED IMPORTED_TARGET wayland-scanner)
       add_executable (${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-      target_include_directories (${PROJECT_NAME} PUBLIC PkgConfig::WAYLAND 
+      target_include_directories (${PROJECT_NAME} PUBLIC PkgConfig::WAYLAND
                                                          PkgConfig::WAYLAND_CLIENT)
                                                          #PkgConfig::WAYLAND_SCANNER)
       target_link_libraries (${PROJECT_NAME} PUBLIC utils
