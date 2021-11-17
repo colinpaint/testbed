@@ -19,7 +19,7 @@
 
 #include "cat.h"
 
-#include "xdg-shell-client-protocol.h"
+#include "../shellLib/xdg-shell-client-protocol.h"
 //}}}
 
 static const int width = 128;
@@ -152,7 +152,7 @@ static int anonymousShmOpen() {
 static int createShmFile (off_t size) {
 
   int fd = anonymousShmOpen();
-  if (fd < 0) 
+  if (fd < 0)
     return fd;
 
   if (ftruncate (fd, size) < 0) {
