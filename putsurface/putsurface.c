@@ -28,52 +28,26 @@
 #include <assert.h>
 #include <pthread.h>
 //}}}
-//{{{  forwards
-static void *open_display(void);
-static void close_display(void *win_display);
-static int create_window(void *win_display, int x, int y, int width, int height);
-static int check_window_event(void *win_display, void *drawable, int *width, int *height, int *quit);
-
-struct display;
-struct drawable;
-//}}}
 
 //{{{
-static VAStatus va_put_surface (VADisplay dpy, struct drawable* wl_drawable, VASurfaceID va_surface,
-                                const VARectangle* src_rect, const VARectangle* dst_rect,
-                                const VARectangle* cliprects, unsigned int num_cliprects,
-                                unsigned int flags);
+struct display {
+  struct wl_display*    display;
+  struct wl_compositor* compositor;
+  struct wl_shell*      shell;
+  struct wl_registry*   registry;
+  int                   event_fd;
+  };
 //}}}
-/* Glue code for the current PutSurface test design */
+//{{{
+struct drawable {
+  struct wl_display* display;
+  struct wl_surface* surface;
+  unsigned int       redraw_pending  : 1;
+  };
+//}}}
 #define CAST_DRAWABLE(a)  (struct drawable*)(a)
-//{{{
-static inline VADisplay vaGetDisplay (VANativeDisplay native_dpy) {
 
-  return vaGetDisplayWl(native_dpy);
-  }
-//}}}
-//{{{
-static VAStatus vaPutSurface (VADisplay dpy, VASurfaceID surface, struct drawable *wl_drawable,
-                              short src_x, short src_y, unsigned short src_w, unsigned short src_h,
-                              short dst_x, short dst_y, unsigned short dst_w, unsigned short dst_h,
-                              const VARectangle* cliprects, unsigned int num_cliprects,
-                              unsigned int flags) {
-
-  VARectangle src_rect;
-  src_rect.x = src_x;
-  src_rect.y = src_y;
-  src_rect.width  = src_w;
-  src_rect.height = src_h;
-
-  VARectangle dst_rect;
-  dst_rect.x = src_x;
-  dst_rect.y = src_y;
-  dst_rect.width  = src_w;
-  dst_rect.height = src_h;
-
-  return va_put_surface (dpy, wl_drawable, surface, &src_rect, &dst_rect, cliprects, num_cliprects, flags);
-  }
-//}}}
+static inline VADisplay vaGetDisplay (VANativeDisplay native_dpy) { return vaGetDisplayWl (native_dpy); }
 
 //{{{
 /*currently, if XCheckWindowEvent was called  in more than one thread, it would cause
@@ -93,8 +67,10 @@ if (va_status != VA_STATUS_SUCCESS) {                                   \
     exit(1);                                                            \
 }
 //}}}
+
 #include "loadsurface.h"
 #define SURFACE_NUM 16
+
 //{{{  vars
 static  void *win_display;
 static  VADisplay va_dpy;
@@ -219,7 +195,7 @@ static int ensure_image_formats() {
   }
 //}}}
 //{{{
-static const VAImageFormat * lookup_image_format( uint32_t fourcc) {
+static const VAImageFormat* lookup_image_format (uint32_t fourcc) {
 
   int i;
   if (!ensure_image_formats())
@@ -276,7 +252,7 @@ static int ensure_surface_attribs() {
   }
 //}}}
 //{{{
-static const VASurfaceAttrib * lookup_surface_attrib (VASurfaceAttribType type, const VAGenericValue* value) {
+static const VASurfaceAttrib* lookup_surface_attrib (VASurfaceAttribType type, const VAGenericValue* value) {
 
   int i;
   if (!ensure_surface_attribs())
@@ -432,6 +408,230 @@ static void update_clipbox (VARectangle* cliprects, int width, int height) {
           cliprects[1].x, cliprects[1].y, cliprects[1].width, cliprects[1].height);
   }
 //}}}
+
+//{{{
+static void frame_redraw_callback (void* data, struct wl_callback* callback, uint32_t time) {
+
+  struct drawable* const drawable = data;
+  drawable->redraw_pending = 0;
+  wl_callback_destroy (callback);
+  }
+//}}}
+static const struct wl_callback_listener frame_callback_listener = {
+  frame_redraw_callback
+  };
+
+//{{{
+static VAStatus va_put_surface (VADisplay dpy, struct drawable* wl_drawable, VASurfaceID  va_surface,
+                                const VARectangle* src_rect, const VARectangle* dst_rect,
+                                const VARectangle* cliprects, unsigned int num_cliprects, unsigned int flags ) {
+
+  int ret = 0;
+
+  if (!wl_drawable)
+    return VA_STATUS_ERROR_INVALID_SURFACE;
+
+  struct display* d = wl_display_get_user_data (wl_drawable->display);
+  if (!d)
+    return VA_STATUS_ERROR_INVALID_DISPLAY;
+
+  /* Wait for the previous frame to complete redraw */
+  if (wl_drawable->redraw_pending) {
+    wl_display_flush(d->display);
+    while (wl_drawable->redraw_pending && ret >= 0)
+      ret = wl_display_dispatch (wl_drawable->display);
+    }
+
+  struct wl_buffer* buffer;
+  VAStatus va_status = vaGetSurfaceBufferWl (va_dpy, va_surface, VA_FRAME_PICTURE, &buffer);
+  if (va_status != VA_STATUS_SUCCESS)
+    return va_status;
+
+  wl_surface_attach (wl_drawable->surface, buffer, 0, 0);
+  wl_surface_damage (wl_drawable->surface, dst_rect->x, dst_rect->y, dst_rect->width, dst_rect->height);
+
+  wl_display_flush (d->display);
+  wl_drawable->redraw_pending = 1;
+  struct wl_callback* callback = wl_surface_frame (wl_drawable->surface);
+
+  wl_surface_commit (wl_drawable->surface);
+  wl_callback_add_listener (callback, &frame_callback_listener, wl_drawable);
+  return VA_STATUS_SUCCESS;
+  }
+//}}}
+
+//{{{
+static void registry_handle_global (void* data, struct wl_registry* registry, uint32_t id,
+                                    const char* interface, uint32_t version) {
+
+  struct display * const d = data;
+
+  if (strcmp (interface, "wl_compositor") == 0)
+    d->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+  else if (strcmp (interface, "wl_shell") == 0)
+    d->shell = wl_registry_bind(registry, id, &wl_shell_interface, 1);
+  }
+//}}}
+static const struct wl_registry_listener registry_listener = {
+  registry_handle_global,
+  NULL,
+  };
+
+//{{{
+static void* openDisplay() {
+
+  struct display* d = calloc (1, sizeof * d);
+  if (!d)
+    return NULL;
+
+  d->display = wl_display_connect (NULL);
+  if (!d->display) {
+    free (d);
+    return NULL;
+    }
+
+  wl_display_set_user_data (d->display, d);
+  d->registry = wl_display_get_registry (d->display);
+  wl_registry_add_listener (d->registry, &registry_listener, d);
+
+  d->event_fd = wl_display_get_fd (d->display);
+  wl_display_dispatch (d->display);
+
+  return d->display;
+  }
+//}}}
+//{{{
+static void closeDisplay (void* win_display) {
+
+  struct display* const d = wl_display_get_user_data(win_display);
+  if (d->shell) {
+    wl_shell_destroy(d->shell);
+    d->shell = NULL;
+    }
+
+  if (d->compositor) {
+    wl_compositor_destroy(d->compositor);
+    d->compositor = NULL;
+    }
+
+  if (d->display) {
+    wl_display_disconnect(d->display);
+    d->display = NULL;
+    }
+
+  free(d);
+  }
+//}}}
+
+//{{{
+static int createWindow (void* win_display, int x, int y, int width, int height) {
+
+  struct wl_display* const display = win_display;
+  struct display* const d = wl_display_get_user_data (display);
+
+  struct wl_surface* surface1 = wl_compositor_create_surface (d->compositor);
+  struct wl_shell_surface*shell_surface = wl_shell_get_shell_surface (d->shell, surface1);
+  wl_shell_surface_set_toplevel (shell_surface);
+
+  struct drawable* drawable1 = malloc (sizeof(*drawable1));
+  assert(drawable1);
+  drawable1->display = display;
+  drawable1->surface = surface1;
+  drawable1->redraw_pending = 0;
+
+  /* global out */
+  drawable_thread0 = drawable1;
+
+  if (multi_thread == 0)
+    return 0;
+
+  struct wl_surface* surface2 = wl_compositor_create_surface (d->compositor);
+  struct wl_shell_surface*shell_surface_2 = wl_shell_get_shell_surface (d->shell, surface2);
+  wl_shell_surface_set_toplevel (shell_surface_2);
+
+  struct drawable* drawable2 = malloc (sizeof(*drawable2));
+  assert(drawable2);
+  drawable2->display = display;
+  drawable2->surface = surface2;
+  drawable2->redraw_pending = 0;
+
+  /* global out */
+  drawable_thread1 = drawable2;
+
+  return 0;
+  }
+//}}}
+//{{{
+static int checkWindowEevent (void* win_display, void* drawable, int* width, int* height, int* quit) {
+
+  struct wl_display* const display = win_display;
+  struct display* const d = wl_display_get_user_data(display);
+
+  struct timeval tv;
+  fd_set rfds;
+  int retval;
+
+  if (check_event == 0)
+    return 0;
+
+  tv.tv_sec  = 0;
+  tv.tv_usec = 0;
+  do {
+    FD_ZERO(&rfds);
+    FD_SET(d->event_fd, &rfds);
+
+    retval = select(d->event_fd + 1, &rfds, NULL, NULL, &tv);
+    if (retval < 0) {
+      perror("select");
+      break;
+      }
+    if (retval == 1)
+      wl_display_dispatch(d->display);
+    } while (retval > 0);
+
+  #if 0
+    /* bail on any focused key press */
+    if (event.type == KeyPress) {
+        *quit = 1;
+        return 0;
+    }
+  #endif
+
+  #if 0
+    /* rescale the video to fit the window */
+    if (event.type == ConfigureNotify) {
+        *width = event.xconfigure.width;
+        *height = event.xconfigure.height;
+        printf("Scale window to %dx%d\n", width, height);
+    }
+  #endif
+
+  return 0;
+  }
+//}}}
+
+//{{{
+static VAStatus vaPutSurface (VADisplay dpy, VASurfaceID surface, struct drawable *wl_drawable,
+                              short src_x, short src_y, unsigned short src_w, unsigned short src_h,
+                              short dst_x, short dst_y, unsigned short dst_w, unsigned short dst_h,
+                              const VARectangle* cliprects, unsigned int num_cliprects,
+                              unsigned int flags) {
+
+  VARectangle src_rect;
+  src_rect.x = src_x;
+  src_rect.y = src_y;
+  src_rect.width  = src_w;
+  src_rect.height = src_h;
+
+  VARectangle dst_rect;
+  dst_rect.x = src_x;
+  dst_rect.y = src_y;
+  dst_rect.width  = src_w;
+  dst_rect.height = src_h;
+
+  return va_put_surface (dpy, wl_drawable, surface, &src_rect, &dst_rect, cliprects, num_cliprects, flags);
+  }
+//}}}
 //{{{
 static void* putsurface_thread (void* data) {
 
@@ -524,7 +724,7 @@ static void* putsurface_thread (void* data) {
       }
 
     if (check_event)
-      check_window_event (win_display, drawable, &width, &height, &quit);
+      checkWindowEevent (win_display, drawable, &width, &height, &quit);
 
     if (multi_thread) { /* reload surface content */
       row_shift++;
@@ -541,231 +741,6 @@ static void* putsurface_thread (void* data) {
 
   if (drawable == drawable_thread1)
     pthread_exit (NULL);
-
-  return 0;
-  }
-//}}}
-
-//{{{
-struct display {
-  struct wl_display*    display;
-  struct wl_compositor* compositor;
-  struct wl_shell*      shell;
-  struct wl_registry*   registry;
-  int                   event_fd;
-  };
-//}}}
-//{{{
-struct drawable {
-  struct wl_display* display;
-  struct wl_surface* surface;
-  unsigned int       redraw_pending  : 1;
-  };
-//}}}
-
-//{{{
-static void frame_redraw_callback (void* data, struct wl_callback* callback, uint32_t time) {
-
-  struct drawable* const drawable = data;
-  drawable->redraw_pending = 0;
-  wl_callback_destroy (callback);
-  }
-//}}}
-//{{{
-static const struct wl_callback_listener frame_callback_listener = {
-  frame_redraw_callback
-  };
-//}}}
-
-//{{{
-static VAStatus va_put_surface (VADisplay dpy, struct drawable* wl_drawable, VASurfaceID  va_surface,
-                                const VARectangle* src_rect, const VARectangle* dst_rect,
-                                const VARectangle* cliprects, unsigned int num_cliprects, unsigned int flags ) {
-
-  int ret = 0;
-
-  if (!wl_drawable)
-    return VA_STATUS_ERROR_INVALID_SURFACE;
-
-  struct display* d = wl_display_get_user_data (wl_drawable->display);
-  if (!d)
-    return VA_STATUS_ERROR_INVALID_DISPLAY;
-
-  /* Wait for the previous frame to complete redraw */
-  if (wl_drawable->redraw_pending) {
-    wl_display_flush(d->display);
-    while (wl_drawable->redraw_pending && ret >= 0)
-      ret = wl_display_dispatch (wl_drawable->display);
-    }
-
-  struct wl_buffer* buffer;
-  VAStatus va_status = vaGetSurfaceBufferWl (va_dpy, va_surface, VA_FRAME_PICTURE, &buffer);
-  if (va_status != VA_STATUS_SUCCESS)
-    return va_status;
-
-  wl_surface_attach (wl_drawable->surface, buffer, 0, 0);
-  wl_surface_damage (wl_drawable->surface, dst_rect->x, dst_rect->y, dst_rect->width, dst_rect->height);
-
-  wl_display_flush (d->display);
-  wl_drawable->redraw_pending = 1;
-  struct wl_callback* callback = wl_surface_frame (wl_drawable->surface);
-
-  wl_surface_commit (wl_drawable->surface);
-  wl_callback_add_listener (callback, &frame_callback_listener, wl_drawable);
-  return VA_STATUS_SUCCESS;
-  }
-//}}}
-
-//{{{
-static void registry_handle_global (void* data, struct wl_registry* registry, uint32_t id,
-                                    const char* interface, uint32_t version) {
-
-  struct display * const d = data;
-
-  if (strcmp (interface, "wl_compositor") == 0)
-    d->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
-  else if (strcmp (interface, "wl_shell") == 0)
-    d->shell = wl_registry_bind(registry, id, &wl_shell_interface, 1);
-  }
-//}}}
-//{{{
-static const struct wl_registry_listener registry_listener = {
-  registry_handle_global,
-  NULL,
-  };
-//}}}
-
-//{{{
-static void* open_display() {
-
-  struct display* d = calloc (1, sizeof * d);
-  if (!d)
-    return NULL;
-
-  d->display = wl_display_connect (NULL);
-  if (!d->display) {
-    free (d);
-    return NULL;
-    }
-
-  wl_display_set_user_data (d->display, d);
-  d->registry = wl_display_get_registry (d->display);
-  wl_registry_add_listener (d->registry, &registry_listener, d);
-
-  d->event_fd = wl_display_get_fd (d->display);
-  wl_display_dispatch (d->display);
-
-  return d->display;
-  }
-//}}}
-//{{{
-static void close_display (void* win_display) {
-
-  struct display* const d = wl_display_get_user_data(win_display);
-  if (d->shell) {
-    wl_shell_destroy(d->shell);
-    d->shell = NULL;
-    }
-
-  if (d->compositor) {
-    wl_compositor_destroy(d->compositor);
-    d->compositor = NULL;
-    }
-
-  if (d->display) {
-    wl_display_disconnect(d->display);
-    d->display = NULL;
-    }
-
-  free(d);
-  }
-//}}}
-
-//{{{
-static int create_window (void* win_display, int x, int y, int width, int height) {
-
-  struct wl_display * const display = win_display;
-  struct display * const d = wl_display_get_user_data(display);
-  struct wl_surface *surface1, *surface2;
-  struct wl_shell_surface *shell_surface;
-  struct wl_shell_surface *shell_surface_2;
-  struct drawable *drawable1, *drawable2;
-
-  surface1 = wl_compositor_create_surface (d->compositor);
-  shell_surface = wl_shell_get_shell_surface (d->shell, surface1);
-  wl_shell_surface_set_toplevel (shell_surface);
-
-  drawable1 = malloc(sizeof(*drawable1));
-  assert(drawable1);
-  drawable1->display = display;
-  drawable1->surface = surface1;
-  drawable1->redraw_pending = 0;
-
-  /* global out */
-  drawable_thread0 = drawable1;
-
-  if (multi_thread == 0)
-    return 0;
-
-  surface2 = wl_compositor_create_surface(d->compositor);
-  shell_surface_2 = wl_shell_get_shell_surface(d->shell, surface2);
-  wl_shell_surface_set_toplevel(shell_surface_2);
-
-  drawable2 = malloc(sizeof(*drawable2));
-  assert(drawable2);
-  drawable2->display = display;
-  drawable2->surface = surface2;
-  drawable2->redraw_pending = 0;
-
-  /* global out */
-  drawable_thread1 = drawable2;
-  return 0;
-  }
-//}}}
-//{{{
-static int check_window_event (void* win_display, void* drawable, int* width, int* height, int* quit) {
-
-  struct wl_display* const display = win_display;
-  struct display* const d = wl_display_get_user_data(display);
-
-  struct timeval tv;
-  fd_set rfds;
-  int retval;
-
-  if (check_event == 0)
-    return 0;
-
-  tv.tv_sec  = 0;
-  tv.tv_usec = 0;
-  do {
-    FD_ZERO(&rfds);
-    FD_SET(d->event_fd, &rfds);
-
-    retval = select(d->event_fd + 1, &rfds, NULL, NULL, &tv);
-    if (retval < 0) {
-      perror("select");
-      break;
-      }
-    if (retval == 1)
-      wl_display_dispatch(d->display);
-    } while (retval > 0);
-
-  #if 0
-    /* bail on any focused key press */
-    if (event.type == KeyPress) {
-        *quit = 1;
-        return 0;
-    }
-  #endif
-
-  #if 0
-    /* rescale the video to fit the window */
-    if (event.type == ConfigureNotify) {
-        *width = event.xconfigure.width;
-        *height = event.xconfigure.height;
-        printf("Scale window to %dx%d\n", width, height);
-    }
-  #endif
 
   return 0;
   }
@@ -913,12 +888,12 @@ int main (int argc, char **argv) {
   if (csc_src_fourcc && csc_dst_fourcc)
     test_color_conversion = 1;
 
-  win_display = (void*)open_display();
+  win_display = (void*)openDisplay();
   if (win_display == NULL) {
     fprintf (stderr, "Can't open the connection of display!\n");
     exit (-1);
     }
-  create_window (win_display, win_x, win_y, win_width, win_height);
+  createWindow (win_display, win_x, win_y, win_width, win_height);
 
   va_dpy = vaGetDisplay (win_display);
   va_status = vaInitialize (va_dpy, &major_ver, &minor_ver);
@@ -936,7 +911,7 @@ int main (int argc, char **argv) {
       upload_source_YUV_once_for_all();
 
   if (check_event)
-    pthread_mutex_init(&gmutex, NULL);
+    pthread_mutex_init (&gmutex, NULL);
 
   for (i = 0; i < SURFACE_NUM; i++)
     pthread_mutex_init (&surface_mutex[i], NULL);
@@ -944,11 +919,11 @@ int main (int argc, char **argv) {
   if (multi_thread == 1)
     ret = pthread_create (&thread1, NULL, putsurface_thread, (void*)drawable_thread1);
 
-  putsurface_thread((void *)drawable_thread0);
+  putsurface_thread ((void*)drawable_thread0);
 
   if (multi_thread == 1)
     pthread_join (thread1, (void **)&ret);
-  printf("thread1 is free\n");
+  printf ("thread1 is free\n");
 
   if (test_color_conversion) {
     // destroy temp surface/image
@@ -969,7 +944,8 @@ int main (int argc, char **argv) {
 
   free (va_image_formats);
   free (va_surface_attribs);
-  close_display (win_display);
+
+  closeDisplay (win_display);
 
   return 0;
   }
