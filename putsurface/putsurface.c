@@ -76,9 +76,11 @@ static  void *win_display;
 static  VADisplay va_dpy;
 static  VAImageFormat *va_image_formats;
 static  int va_num_image_formats = -1;
+
 static  VAConfigID vpp_config_id = VA_INVALID_ID;
 static  VASurfaceAttrib *va_surface_attribs;
 static  int va_num_surface_attribs = -1;
+
 static  VASurfaceID surface_id[SURFACE_NUM];
 static  pthread_mutex_t surface_mutex[SURFACE_NUM];
 
@@ -86,16 +88,20 @@ static  void *drawable_thread0, *drawable_thread1;
 static  int surface_width = 352, surface_height = 288;
 static  int win_x = 0, win_y = 0;
 static  int win_width = 352, win_height = 288;
+
 static  int frame_rate = 0;
 static  unsigned long long frame_num_total = ~0;
+
 static  int check_event = 1;
 static  int put_pixmap = 0;
 static  int test_clip = 0;
 static  int display_field = VA_FRAME_PICTURE;
 static  pthread_mutex_t gmutex;
+
 static  int box_width = 32;
 static  int multi_thread = 0;
 static  int verbose = 0;
+
 static  int test_color_conversion = 0;
 static  int csc_src_fourcc = 0, csc_dst_fourcc = 0;
 static  VAImage csc_dst_fourcc_image;
@@ -275,12 +281,10 @@ static const VASurfaceAttrib* lookup_surface_attrib (VASurfaceAttribType type, c
 //{{{
 int csc_preparation() {
 
-  VAStatus va_status;
-
   // 1. make sure dst fourcc is supported for vaImage
   if (!lookup_image_format(csc_dst_fourcc)) {
     test_color_conversion = 0;
-    printf("VA driver doesn't support %s image, skip additional color conversion\n",  map_vafourcc_to_str(csc_dst_fourcc));
+    printf ("VA driver doesn't support %s image, skip additional color conversion\n",  map_vafourcc_to_str(csc_dst_fourcc));
     return test_color_conversion;
     }
 
@@ -300,8 +304,8 @@ int csc_preparation() {
 
   // 3 create all objs required by csc
   // 3.1 vaSurface with src fourcc
-  va_status = vaCreateSurfaces (va_dpy, VA_RT_FORMAT_YUV420, surface_width, surface_height,
-                                &surface_id[0], SURFACE_NUM, surface_attribs, 1);
+  VAStatus va_status = vaCreateSurfaces (va_dpy, VA_RT_FORMAT_YUV420, surface_width, surface_height,
+                                         &surface_id[0], SURFACE_NUM, surface_attribs, 1);
   CHECK_VASTATUS(va_status, "vaCreateSurfaces");
 
   // 3.2 vaImage with dst fourcc
@@ -309,14 +313,13 @@ int csc_preparation() {
   image_format.fourcc = csc_dst_fourcc;
   image_format.byte_order = VA_LSB_FIRST;
   image_format.bits_per_pixel = 16;
-
   va_status = vaCreateImage (va_dpy, &image_format, surface_width, surface_height, &csc_dst_fourcc_image);
   CHECK_VASTATUS(va_status, "vaCreateImage");
 
   // 3.3 create a temp VASurface for final rendering(vaPutSurface)
   s_attrib->value.value.i = VA_FOURCC_NV12;
   va_status = vaCreateSurfaces (va_dpy, VA_RT_FORMAT_YUV420, surface_width, surface_height,
-                               &csc_render_surface, 1, surface_attribs, 1);
+                                &csc_render_surface, 1, surface_attribs, 1);
   CHECK_VASTATUS(va_status, "vaCreateSurfaces");
 
 cleanup:
@@ -361,8 +364,8 @@ static int upload_source_YUV_once_for_all() {
 
   int box_width_loc = 8;
   int row_shift_loc = 0;
-  int i;
-  for (i = 0; i < SURFACE_NUM; i++) {
+
+  for (int i = 0; i < SURFACE_NUM; i++) {
     printf ("\rLoading data into surface %d.....", i);
     upload_surface (va_dpy, surface_id[i], box_width_loc, row_shift_loc, 0);
     row_shift_loc++;
@@ -655,7 +658,7 @@ static void* putsurface_thread (void* data) {
     VASurfaceID surface_id = VA_INVALID_SURFACE;
 
     while (surface_id == VA_INVALID_SURFACE)
-      surface_id = get_next_free_surface(&index);
+      surface_id = get_next_free_surface (&index);
 
     if (verbose)
       printf("Thread: %p Display surface 0x%x,\n", drawable, surface_id);
@@ -908,14 +911,12 @@ int main (int argc, char **argv) {
   CHECK_VASTATUS(va_status, "vaCreateSurfaces");
 
   if (multi_thread == 0) /* upload the content for all surfaces */
-      upload_source_YUV_once_for_all();
+    upload_source_YUV_once_for_all();
 
   if (check_event)
     pthread_mutex_init (&gmutex, NULL);
-
   for (i = 0; i < SURFACE_NUM; i++)
     pthread_mutex_init (&surface_mutex[i], NULL);
-
   if (multi_thread == 1)
     ret = pthread_create (&thread1, NULL, putsurface_thread, (void*)drawable_thread1);
 
@@ -925,6 +926,7 @@ int main (int argc, char **argv) {
     pthread_join (thread1, (void **)&ret);
   printf ("thread1 is free\n");
 
+  // cleanup
   if (test_color_conversion) {
     // destroy temp surface/image
     va_status = vaDestroySurfaces (va_dpy, &csc_render_surface, 1);

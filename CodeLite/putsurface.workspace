@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Workspace Name="putsurface">
+	<Project Name="putsurface" Path="putsurface.project" Active="No"/>
+	<BuildMatrix>
+		<WorkspaceConfiguration Name="NoConfig" Selected="yes">
+			<Project Name="putsurface" ConfigName="NoConfig"/>
+		</WorkspaceConfiguration>
+	</BuildMatrix>
+</CodeLite_Workspace>
