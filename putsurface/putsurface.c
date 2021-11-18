@@ -96,7 +96,7 @@ static  int test_clip = 0;
 static  int display_field = VA_FRAME_PICTURE;
 static  pthread_mutex_t gmutex;
 
-static  int box_width = 32;
+//static  int box_width = 32;
 static  int verbose = 0;
 
 static  int test_color_conversion = 0;
@@ -326,34 +326,15 @@ cleanup:
 //{{{
 static VASurfaceID get_next_free_surface (int* index) {
 
-  VASurfaceStatus surface_status;
   int i;
 
   assert(index);
-  if (multi_thread == 0) {
-    i = *index;
-    i++;
-    if (i == SURFACE_NUM)
-      i = 0;
-    *index = i;
-    return surface_id[i];
-    }
-
-  for (i = 0; i < SURFACE_NUM; i++) {
-    surface_status = (VASurfaceStatus)0;
-    vaQuerySurfaceStatus (va_dpy, surface_id[i], &surface_status);
-    if (surface_status == VASurfaceReady) {
-      if (0 == pthread_mutex_trylock (&surface_mutex[i])) {
-        *index = i;
-        break;
-        }
-      }
-    }
-
+  i = *index;
+  i++;
   if (i == SURFACE_NUM)
-    return VA_INVALID_SURFACE;
-  else
-    return surface_id[i];
+    i = 0;
+  *index = i;
+  return surface_id[i];
   }
 //}}}
 //{{{
@@ -468,6 +449,7 @@ static int checkWindowEevent (void* win_display, void* drawable, int* width, int
   if (check_event == 0)
     return 0;
 
+  int retval = 0;
   struct timeval tv;
   tv.tv_sec  = 0;
   tv.tv_usec = 0;
@@ -476,7 +458,7 @@ static int checkWindowEevent (void* win_display, void* drawable, int* width, int
     FD_ZERO (&rfds);
     FD_SET (d->event_fd, &rfds);
 
-    int retval = select (d->event_fd + 1, &rfds, NULL, NULL, &tv);
+    retval = select (d->event_fd + 1, &rfds, NULL, NULL, &tv);
     if (retval < 0) {
       perror("select");
       break;
@@ -534,7 +516,6 @@ static void* putsurface_thread (void* data) {
   void *drawable = data;
   int quit = 0;
   VAStatus vaStatus;
-  int row_shift = 0;
   int index = 0;
   unsigned int frame_num = 0, start_time, putsurface_time;
   VARectangle cliprects[2]; /* client supplied clip list */
@@ -722,11 +703,8 @@ int main (int argc, char **argv) {
 
   int major_ver, minor_ver;
   VAStatus va_status;
-  pthread_t thread1;
   int ret;
-  int c;
   int i;
-  char str_src_fmt[5], str_dst_fmt[5];
 
   //check_event = 0;
   //test_clip = 1;
@@ -752,7 +730,7 @@ int main (int argc, char **argv) {
     ret = csc_preparation();
 
   if (!test_color_conversion || !ret)
-    va_status = vaCreateSurfaces (va_dpy, VA_RT_FORMAT_YUV420, 
+    va_status = vaCreateSurfaces (va_dpy, VA_RT_FORMAT_YUV420,
                                   surface_width, surface_height,
                                   &surface_id[0], SURFACE_NUM, NULL, 0);
   CHECK_VASTATUS(va_status, "vaCreateSurfaces");
